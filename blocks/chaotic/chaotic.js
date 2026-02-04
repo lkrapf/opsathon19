@@ -1,24 +1,32 @@
 export default async function decorate(block) {
-  const usp = new URLSearchParams(window.location.search);
+  const replContainer = document.createElement('div');
+  replContainer.classList.add('repl-container');
 
-  const query = usp.get('q') || '';
-  const searchHeader = document.createElement('div');
-  searchHeader.classList.add('search-header-container');
-  searchHeader.innerHTML = `
-    <h2>Search Results</h2>
-    <form action="/search" method="get" id="search-form">
-      <div class="search-container" >
-        <label for="edit-keys">Enter your keywords </label>
-        <input type="text" id="search-input" name="q" value="${query}" size="40" maxlength="255">
-      </div>
-      <input type="submit" value="Search">
-    </form>
+  const inputForm = document.createElement('form');
+  inputForm.id = 'repl-form';
+  inputForm.innerHTML = `
+    <label for="repl-input">JS REPL:</label>
+    <input type="text" id="repl-input" name="repl-input" size="60" autocomplete="off" />
+    <button type="submit">Run</button>
   `;
-  block.append(searchHeader);
 
-  if (query) {
-    const displaySearch = document.createElement('p');
-    displaySearch.innerHTML = `You searched for: <strong>${query}</strong>`;
-    block.append(displaySearch);
-  }
+  const outputArea = document.createElement('pre');
+  outputArea.id = 'repl-output';
+  outputArea.style.marginTop = '1em';
+
+  inputForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = inputForm.querySelector('#repl-input').value;
+    let result;
+    try {
+      result = eval(input);
+    } catch (err) {
+      result = err.toString();
+    }
+    outputArea.textContent = String(result);
+  });
+
+  replContainer.appendChild(inputForm);
+  replContainer.appendChild(outputArea);
+  block.append(replContainer);
 }
