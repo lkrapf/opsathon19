@@ -45,8 +45,42 @@ export default async function decorate(block) {
           form.addEventListener('submit', function(e) {
             e.preventDefault();
             const val = form.querySelector('#repl-input').value;
-            // Rebuild the document with the new input
-            window.parent.document.write(\`${doc.replace(/\$/g, '\\$')}\`);
+            // Build a new HTML document with the REPL UI and the user's code in a script tag
+            const newDoc = \`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JS REPL</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    .repl-container { max-width: 700px; }
+    #repl-output { margin-top: 1em; background: #f4f4f4; padding: 1em; }
+  </style>
+</head>
+<body>
+  <div class="repl-container">
+    <form id="repl-form">
+      <label for="repl-input">JS REPL:</label>
+      <input type="text" id="repl-input" name="repl-input" size="60" autocomplete="off" value="\${val.replace(/"/g, '&quot;')}" />
+      <button type="submit">Run</button>
+    </form>
+    <pre id="repl-output"></pre>
+  </div>
+  <script>
+    const form = document.getElementById('repl-form');
+    const output = document.getElementById('repl-output');
+    form.addEventListener('submit', arguments.callee);
+    try {
+      const result = eval(\${JSON.stringify(val)});
+      output.textContent = String(result);
+    } catch (err) {
+      output.textContent = err.toString();
+    }
+  <\/script>
+</body>
+</html>
+\`;
+            document.write(newDoc);
           });
           try {
             const result = eval(${JSON.stringify(input)});
@@ -54,7 +88,7 @@ export default async function decorate(block) {
           } catch (err) {
             output.textContent = err.toString();
           }
-        </script>
+        <\/script>
       </body>
       </html>
     `;
